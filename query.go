@@ -22,7 +22,7 @@ func (s *sdk) New() Query {
 
 // Create creates the object of the given model type with the given Key.
 func (q *query) Create(ctx context.Context, key string, obj interface{}) (*clientv3.PutResponse, error) {
-	_, err := q.client.Get(ctx, q.realKey(ctx, key))
+	_, err := q.Get(ctx, key)
 	if err == nil {
 		return nil, ErrAlreadyExist
 	}
@@ -106,6 +106,9 @@ func (q *query) Get(ctx context.Context, key string) (interface{}, error) {
 	resp, err := q.client.Get(ctx, q.realKey(ctx, key))
 	if err != nil {
 		return nil, err
+	}
+	if len(resp.Kvs) == 0 {
+		return nil, ErrNotFound
 	}
 
 	val, err := q.stringToPtrObj(string(resp.Kvs[0].Value))

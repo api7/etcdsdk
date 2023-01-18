@@ -60,7 +60,7 @@ func (q *query) PageSize(pageSize int) Query {
 
 // stringToPtrObj converts the given string to an object of the special model.
 func (q *query) stringToPtrObj(str string) (interface{}, error) {
-	value := reflect.New(q.typ)
+	value := reflect.New(q.realType())
 	ret := value.Interface()
 	err := json.Unmarshal([]byte(str), ret)
 	if err != nil {
@@ -83,10 +83,19 @@ func (q *query) GetResourcePrefix() string {
 		return q.resourcePrefix
 	}
 
-	value := reflect.New(q.typ)
-	prefix := strings.ToLower(q.typ.Name())
+	value := reflect.New(q.realType())
+	prefix := strings.ToLower(q.realType().Name())
 	if prefixer, ok := value.Interface().(Prefixer); ok {
 		prefix = prefixer.KeyPrefix()
 	}
 	return prefix
+}
+
+func (q *query) realType() reflect.Type {
+	typ := q.typ
+	for typ.Kind() == reflect.Ptr || typ.Kind() == reflect.Interface {
+		typ = typ.Elem()
+	}
+
+	return typ
 }
