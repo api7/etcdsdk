@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/tests/v3/integration"
 )
 
@@ -27,7 +28,10 @@ func etcdSetup(t *testing.T) *integration.ClusterV3 {
 func TestGet(t *testing.T) {
 	mockCluster := etcdSetup(t)
 	defer mockCluster.Terminate(t)
-	etcdClient := mockCluster.RandClient()
+	var endpoints []string
+	for _, member := range mockCluster.Members {
+		endpoints = append(endpoints, member.GRPCURL())
+	}
 
 	tests := []struct {
 		Desc       string
@@ -83,7 +87,8 @@ func TestGet(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Desc, func(t *testing.T) {
-			sdk := New(etcdClient, nil, "/apisix")
+			sdk, err := New(clientv3.Config{Endpoints: endpoints}, nil, "/apisix")
+			assert.Nil(t, err)
 
 			q := sdk.New().Type(tc.giveType)
 			if tc.givePrefix != "" {

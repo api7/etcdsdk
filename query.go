@@ -3,12 +3,12 @@ package etcdsdk
 import (
 	"context"
 	"encoding/json"
-	clientv3 "go.etcd.io/etcd/client/v3"
 	"path"
 	"sort"
 
 	jsonPatch "github.com/evanphx/json-patch"
 	"github.com/pkg/errors"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // New create a new query object

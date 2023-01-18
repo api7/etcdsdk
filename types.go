@@ -3,9 +3,10 @@ package etcdsdk
 import (
 	"context"
 	"encoding/json"
-	clientv3 "go.etcd.io/etcd/client/v3"
 	"reflect"
 	"strconv"
+
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // SDK is the interface for the SDK.
