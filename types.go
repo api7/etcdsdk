@@ -40,7 +40,7 @@ type Query interface {
 	Filter(filter filterFunc) Query
 	// Sort sets the sortFunc function for the query.
 	Sort(sort sortFunc) Query
-	// Prefix sets the resource givePrefix for the query.
+	// Prefix sets the resource prefix for the query.
 	Prefix(prefix string) Query
 	// Page sets the page for the list function of the query.
 	Page(page int) Query
@@ -94,7 +94,7 @@ type Prefixer interface {
 
 // BaseInfo is the base info for most models.
 type BaseInfo struct {
-	ID         ID    `json:"id"`
+	ID         ID    `json:"id,omitempty"`
 	CreateTime int64 `json:"create_time,omitempty"`
 	UpdateTime int64 `json:"update_time,omitempty"`
 }

@@ -12,14 +12,14 @@ func InArray[V string | int | HookMethod | ID](key V, array []V) bool {
 }
 
 // Pagination paginates the given list
-func Pagination(rows []interface{}, size, number int) []interface{} {
-	if size > 0 && number > 0 {
-		skip := (number - 1) * size
+func Pagination(rows []interface{}, pageSize, pageNumber int) []interface{} {
+	if pageSize > 0 && pageNumber > 0 {
+		skip := (pageNumber - 1) * pageSize
 		if skip > len(rows) {
 			return []interface{}{}
 		}
 
-		end := skip + size
+		end := skip + pageSize
 		if end >= len(rows) {
 			return rows[skip:]
 		}

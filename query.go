@@ -80,11 +80,10 @@ func (q *query) Update(ctx context.Context, key string, obj interface{}, createI
 
 // Delete deletes data from db by the given Key.
 func (q *query) Delete(ctx context.Context, key string) (*clientv3.DeleteResponse, error) {
-	r, err := q.client.Get(ctx, q.realKey(ctx, key))
+	val, err := q.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
-	val, _ := q.stringToPtrObj(string(r.Kvs[0].Value))
 
 	resp, err := q.client.Delete(ctx, q.realKey(ctx, key))
 	if err != nil {
@@ -175,17 +174,22 @@ func (q *query) List(ctx context.Context) (*ListOutput, error) {
 
 // Patch updates the object of the given model type with the given Key.
 func (q *query) Patch(ctx context.Context, key string, obj interface{}) (*clientv3.PutResponse, error) {
-	r, err := q.client.Get(ctx, q.realKey(ctx, key))
+	val, err := q.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
-	patch, err := json.Marshal(obj)
+	jsonByte, err := json.Marshal(val)
 	if err != nil {
-		return nil, errors.Wrap(err, "json marshal")
+		return nil, errors.Wrap(err, "json marshal origin data")
 	}
 
-	result, err := jsonPatch.MergePatch(r.Kvs[0].Value, patch)
+	patch, err := json.Marshal(obj)
+	if err != nil {
+		return nil, errors.Wrap(err, "json marshal patch data")
+	}
+
+	result, err := jsonPatch.MergePatch(jsonByte, patch)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to apply patch")
 	}
@@ -195,16 +199,11 @@ func (q *query) Patch(ctx context.Context, key string, obj interface{}) (*client
 		return nil, errors.Wrap(err, "failed to update")
 	}
 
-	val, err := q.stringToPtrObj(string(result))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to bind string to struct object")
-	}
-
 	q.runHooks(ctx, &HookParams{
 		Method:   HookMethodPatch,
 		Key:      key,
 		Val:      obj,
-		Revision: r.Header.Revision,
+		Revision: resp.Header.Revision,
 		Result:   val,
 	})
 
